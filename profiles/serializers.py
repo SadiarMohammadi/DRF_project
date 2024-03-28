@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Profiles
-
+from posts.serializers import PostSerializer
+from posts.models import Posts
 
 #
 # class ProfileSerializer(serializers.Serializer):
@@ -8,7 +9,6 @@ from .models import Profiles
 #     first_name = serializers.CharField(max_length=50)
 #     last_name = serializers.CharField(max_length=100)
 #
-
 #     def create(self, validated_data):
 #         return Profiles.objects.create(**validated_data)
 #
@@ -22,6 +22,15 @@ from .models import Profiles
 # Model Serializer
 
 class ProfileSerializer(serializers.ModelSerializer):
+    posts = PostSerializer(many=True, read_only=True)
+    post = PostSerializer(write_only=True)
+
     class Meta:
         model = Profiles
         fields = '__all__'
+
+    def create(self, validated_data):
+        post = validated_data.pop('post')
+        my_profile = Profiles.objects.create(**validated_data)
+        my_post = Posts.objects.create(**post, author=my_profile)
+        return my_profile 
